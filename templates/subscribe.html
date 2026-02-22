@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Subscribe - Fake Review Detector</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+  <body class="auth-page">
+    <div class="subscribe-container">
+      <div class="subscribe-header">
+        <h1>Choose Your Plan</h1>
+        <p class="subtitle">Get unlimited access to fake review detection</p>
+
+        {% if user %}
+        <div class="user-badge">
+          <span>Logged in as: <strong>{{ user }}</strong></span>
+          <a href="/logout">Logout</a>
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="plans-grid">
+        {% for plan_id, plan in plans.items() %}
+        <div class="plan-card {% if plan.recommended %}recommended{% endif %}">
+          {% if plan.badge %}
+          <div class="plan-badge {{ plan.badge|lower }}">{{ plan.badge }}</div>
+          {% endif %}
+
+          <h2 class="plan-name">{{ plan.name }}</h2>
+          <div class="plan-price">
+            <span class="currency">₱</span>
+            <span class="amount">{{ plan.price }}</span>
+            {% if plan.duration_days < 30 %}
+            <span class="period">/ {{ plan.duration_days }} days</span>
+            {% elif plan.duration_days == 365 %}
+            <span class="period">/ year</span>
+            {% else %}
+            <span class="period">/ month</span>
+            {% endif %}
+          </div>
+
+          <ul class="plan-features">
+            {% for feature in plan.features %}
+            <li>
+              <svg class="check-icon" viewBox="0 0 20 20" fill="currentColor">
+                <path
+                  fill-rule="evenodd"
+                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              {{ feature }}
+            </li>
+            {% endfor %}
+          </ul>
+
+          <button class="btn-select-plan" data-plan="{{ plan_id }}">
+            Select Plan
+          </button>
+        </div>
+        {% endfor %}
+      </div>
+
+      <div class="subscribe-footer">
+        <p>🔒 Secure payment processing</p>
+        <p>30-day money-back guarantee</p>
+        <a href="/" class="back-link">← Back to Home</a>
+      </div>
+    </div>
+
+    {% if user %}
+    <script>
+      document.querySelectorAll(".btn-select-plan").forEach((button) => {
+        button.addEventListener("click", async () => {
+          const planType = button.dataset.plan;
+
+          try {
+            const response = await fetch("/checkout", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ plan_type: planType }),
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+              alert(`Subscription activated! Valid until ${data.end_date}`);
+              window.location.href = "/dashboard";
+            } else {
+              alert(data.message);
+            }
+          } catch (error) {
+            alert("An error occurred. Please try again.");
+          }
+        });
+      });
+    </script>
+    {% else %}
+    <script>
+      document.querySelectorAll(".btn-select-plan").forEach((button) => {
+        button.addEventListener("click", () => {
+          window.location.href = "/login?redirect=/checkout";
+        });
+      });
+    </script>
+    {% endif %}
+  </body>
+</html>

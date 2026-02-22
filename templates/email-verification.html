@@ -1,0 +1,99 @@
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
+<script>
+// ================================
+// Initialize EmailJS (Public Key ONLY)
+// ================================
+emailjs.init("uERnhntxcwIxoIZnb"); 
+
+// ================================
+// Generate Random Token
+// ================================
+function generateToken(length = 32) {
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let token = "";
+    for (let i = 0; i < length; i++) {
+        token += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return token;
+}
+
+// ================================
+// Subscribe Function
+// ================================
+async function subscribe() {
+    const emailInput = document.getElementById("email");
+    const message = document.getElementById("message");
+    const email = emailInput.value.trim();
+
+    message.innerHTML = "";
+
+    if (!email || !email.includes("@")) {
+        message.innerHTML = `<span class="error">❌ Please enter a valid email address.</span>`;
+        return;
+    }
+
+    const token = generateToken();
+
+    // Store token in localStorage (demo purpose)
+    localStorage.setItem(token, JSON.stringify({
+        email: email,
+        verified: false
+    }));
+
+    const verificationLink = `${window.location.origin}${window.location.pathname}?verify=${token}`;
+
+    try {
+        await emailjs.send(
+            "service_2obuxc2",         // Service ID
+            "template_eh2bopl",       // Template ID
+            {
+                to_email: email,
+                to_name: email.split("@")[0],
+                verification_link: verificationLink
+            }
+        );
+
+        message.innerHTML = `<span class="success">✅ Verification email sent to ${email}!</span>`;
+        console.log("Token:", token);
+
+    } catch (error) {
+        console.error("EmailJS Error:", error);
+        message.innerHTML = `<span class="error">❌ Failed to send email. Check console.</span>`;
+    }
+}
+
+// ================================
+// Verify Token on Page Load
+// ================================
+window.onload = function () {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get("verify");
+
+    if (token) {
+        const storedData = localStorage.getItem(token);
+
+        if (storedData) {
+            const data = JSON.parse(storedData);
+            data.verified = true;
+            localStorage.setItem(token, JSON.stringify(data));
+
+            document.getElementById("message").innerHTML =
+                `<span class="success">✅ Email ${data.email} verified successfully!</span>`;
+
+            console.log("Verified:", data);
+        } else {
+            document.getElementById("message").innerHTML =
+                `<span class="error">❌ Invalid or expired verification link.</span>`;
+        }
+    }
+};
+</script>
+
+<div class="container">
+    <h1>Email Subscription</h1>
+    <p>Enter your email to receive a verification link.</p>
+    <input type="email" id="email" placeholder="you@example.com" />
+    <button onclick="subscribe()">Subscribe</button>
+    <div id="message"></div>
+</div>
