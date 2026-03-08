@@ -6,12 +6,12 @@ from datetime import datetime, timedelta
 import os
 
 # ==================== CONFIGURATION ====================
-# Subscription Plans Configuration 
+# Subscription Plans Configuration (PHP - Philippine Pesos)
 SUBSCRIPTION_PLANS = {
     '3_day': {
         'name': '3-Day Trial',
         'duration_days': 3,
-        'price': 2.99,
+        'price': 150,
         'features': [
             'Analyze up to 50 reviews',
             'Basic fake review detection',
@@ -21,23 +21,10 @@ SUBSCRIPTION_PLANS = {
         'badge': 'TRIAL',
         'recommended': False
     },
-    '1_week': {
-        'name': '1-Week Starter',
-        'duration_days': 7,
-        'price': 9.99,
-        'features': [
-            'Analyze up to 200 reviews',
-            'Standard fake review detection',
-            'Download detailed reports',
-            'Email support'
-        ],
-        'badge': None,
-        'recommended': False
-    },
     '1_month': {
         'name': '1-Month Premium',
         'duration_days': 30,
-        'price': 29.99,
+        'price': 1500,
         'features': [
             'Unlimited review analysis',
             'Advanced AI-powered detection',
@@ -48,42 +35,6 @@ SUBSCRIPTION_PLANS = {
         ],
         'badge': 'POPULAR',
         'recommended': True
-    },
-    '3_month': {
-        'name': '3-Month Professional',
-        'duration_days': 90,
-        'price': 69.99,
-        'features': [
-            'Unlimited review analysis',
-            'Advanced AI-powered detection',
-            'Detailed fraud analytics',
-            'Priority support 24/7',
-            'Custom reports & insights',
-            'Competitor analysis tool',
-            'API access for integrations',
-            'Team management (up to 5 users)'
-        ],
-        'badge': None,
-        'recommended': False
-    },
-    '1_year': {
-        'name': '1-Year Enterprise',
-        'duration_days': 365,
-        'price': 199.99,
-        'features': [
-            'Unlimited review analysis',
-            'Advanced AI-powered detection',
-            'Detailed fraud analytics',
-            'Priority support 24/7',
-            'Custom reports & insights',
-            'Competitor analysis tool',
-            'API access for integrations',
-            'Team management (unlimited users)',
-            'White-label solution',
-            'Custom integrations'
-        ],
-        'badge': 'ENTERPRISE',
-        'recommended': False
     }
 }
 

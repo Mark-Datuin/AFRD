@@ -72,11 +72,60 @@
       </div>
     </div>
 
+    <!-- QR Code Payment Modal -->
+    <div id="qr-modal" class="qr-modal" style="display: none;">
+      <div class="qr-modal-content">
+        <span class="qr-close" onclick="closeQRModal()">&times;</span>
+        <h2>Complete Your Payment</h2>
+        <p class="qr-instructions">Scan the QR code below to pay</p>
+        
+        <div class="qr-image-container">
+          <img src="{{ url_for('static', filename='sample_qr.jpg') }}" alt="Payment QR Code" class="qr-image">
+        </div>
+        
+        <div class="qr-plan-details">
+          <p><strong>Selected Plan:</strong> <span id="qr-plan-name"></span></p>
+          <p><strong>Amount:</strong> <span id="qr-plan-price"></span></p>
+        </div>
+        
+        <p class="qr-note">📱 Scan with your banking app to pay</p>
+        
+        <button class="btn-primary" onclick="confirmPayment()">I Have Paid</button>
+        
+        <div id="qr-message" class="message"></div>
+      </div>
+    </div>
+
     {% if user %}
     <script>
+      let selectedPlan = null;
+      let selectedPlanName = null;
+      let selectedPlanPrice = null;
+
       document.querySelectorAll(".btn-select-plan").forEach((button) => {
-        button.addEventListener("click", async () => {
+        button.addEventListener("click", () => {
           const planType = button.dataset.plan;
+          
+          // Get plan details
+          selectedPlan = planType;
+          const planCard = button.closest('.plan-card');
+          selectedPlanName = planCard.querySelector('.plan-name').textContent;
+          selectedPlanPrice = planCard.querySelector('.amount').textContent;
+
+          // Show QR modal
+          document.getElementById('qr-plan-name').textContent = selectedPlanName;
+          document.getElementById('qr-plan-price').textContent = '₱' + selectedPlanPrice;
+          document.getElementById('qr-modal').style.display = 'flex';
+        });
+      });
+
+      function closeQRModal() {
+          document.getElementById('qr-modal').style.display = 'none';
+          document.getElementById('qr-message').style.display = 'none';
+      }
+
+      async function confirmPayment() {
+          if (!selectedPlan) return;
 
           try {
             const response = await fetch("/checkout", {
@@ -84,22 +133,38 @@
               headers: {
                 "Content-Type": "application/json",
               },
-              body: JSON.stringify({ plan_type: planType }),
+              body: JSON.stringify({ plan_type: selectedPlan }),
             });
 
             const data = await response.json();
 
             if (data.success) {
-              alert(`Subscription activated! Valid until ${data.end_date}`);
-              window.location.href = "/dashboard";
+              showQRMessage(`Subscription activated! Valid until ${data.end_date}`, 'success');
+              setTimeout(() => {
+                  window.location.href = "/dashboard";
+              }, 2000);
             } else {
-              alert(data.message);
+              showQRMessage(data.message, 'error');
             }
           } catch (error) {
-            alert("An error occurred. Please try again.");
+            showQRMessage("An error occurred. Please try again.", 'error');
           }
-        });
-      });
+      }
+
+      function showQRMessage(text, type) {
+          const messageDiv = document.getElementById('qr-message');
+          messageDiv.textContent = text;
+          messageDiv.className = 'message ' + type;
+          messageDiv.style.display = 'block';
+      }
+
+      // Close modal when clicking outside
+      window.onclick = function(event) {
+          const modal = document.getElementById('qr-modal');
+          if (event.target == modal) {
+              closeQRModal();
+          }
+      }
     </script>
     {% else %}
     <script>
@@ -110,5 +175,80 @@
       });
     </script>
     {% endif %}
+
+    <style>
+      .qr-modal {
+          display: none;
+          position: fixed;
+          z-index: 1000;
+          left: 0;
+          top: 0;
+          width: 100%;
+          height: 100%;
+          background-color: rgba(0, 0, 0, 0.7);
+          align-items: center;
+          justify-content: center;
+      }
+
+      .qr-modal-content {
+          background: white;
+          padding: 40px;
+          border-radius: 15px;
+          text-align: center;
+          max-width: 400px;
+          width: 90%;
+          position: relative;
+      }
+
+      .qr-close {
+          position: absolute;
+          top: 15px;
+          right: 20px;
+          font-size: 28px;
+          font-weight: bold;
+          color: #aaa;
+          cursor: pointer;
+      }
+
+      .qr-close:hover {
+          color: #333;
+      }
+
+      .qr-image-container {
+          margin: 20px 0;
+      }
+
+      .qr-image {
+          width: 200px;
+          height: 200px;
+          object-fit: contain;
+          border: 2px solid #eee;
+          border-radius: 10px;
+      }
+
+      .qr-plan-details {
+          background: #f8f9fa;
+          padding: 15px;
+          border-radius: 8px;
+          margin: 15px 0;
+      }
+
+      .qr-plan-details p {
+          margin: 5px 0;
+          color: #333;
+      }
+
+      .qr-instructions {
+          color: #666;
+          font-size: 1.1rem;
+          margin-bottom: 10px;
+      }
+
+      .qr-note {
+          color: #666;
+          font-size: 0.9rem;
+          margin-bottom: 20px;
+      }
+    </style>
   </body>
 </html>
